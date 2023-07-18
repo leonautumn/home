@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../mqttToInflux/.idea/mqttToInflux.iml" filepath="$PROJECT_DIR$/../mqttToInflux/.idea/mqttToInflux.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/writeCpuStats.iml" filepath="$PROJECT_DIR$/.idea/writeCpuStats.iml" />
+    </modules>
+  </component>
+</project>
