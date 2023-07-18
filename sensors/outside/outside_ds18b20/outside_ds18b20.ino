@@ -8,7 +8,7 @@
 #include <DallasTemperature.h>
 
 /* General definitions */
-unsigned long delayTime = 30000;                // Delay time until new cycle starts
+unsigned long delayTime = 5000;                // Delay time until new cycle starts
 
 /* Wifi definitions */
 const char* WIFI_SSID = "WIFI_SSID";    // Wifi WIFI_SSID
