@@ -2,9 +2,12 @@
 
 import sys, pathlib
 import logging as log
-import paho.mqtt.client as mqtt
+import time
 import logging.handlers as log_handler
+import raspi_cpu_information
+from mqttToInflux import mqttInfluxInterface
 from influxDB_interface import InfluxDBInterface
+import threading
 
 ''' Get current path of main.py as string '''
 currentPath = str(pathlib.Path(__file__).parent.resolve())
@@ -29,6 +32,7 @@ rootLogger.addHandler(fileHandler)
 consoleHandler = log.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
 
+# TODO: Configuration of INFLUX and MQTT in an XML file
 ''' InfluxDB settings '''
 influxHost = 'localhost'
 influxPort = 8086
@@ -40,52 +44,33 @@ influxDB_interface = InfluxDBInterface(influxHost, influxPort, influxDatabase)
 ''' MQTT settings '''
 BROKER_ADDRESS = "localhost"
 
+''' MQTT InfluxDB interface instance '''
+mqttInfluxInterface = mqttInfluxInterface(BROKER_ADDRESS, influxDB_interface)
 
-def on_message(client, userdata, message):
-    # Decode message in utf-8 format
-    msg = str(message.payload.decode("utf-8"))
-
-    # Convert value [payload] into float data type
-    val = float(msg)
-
-    # Split topic into several elements
-    msg_arr = message.topic.split("/")
-    log.info(msg_arr)
-
-    # Get topic element 3 and 4, put them together
-    #   E. g.: "office/temperature" --> "office-temperature"
-    key = msg_arr[3] + '-' + msg_arr[4]
-    log.info(key)
-
-    # Safe topic and payload into dictionary
-    influx_dict = {key: val}
-    log.info(influx_dict)
-
-    # Write dict to database
-    influxDB_interface.dictToDatabase(influx_dict)
-
-
-def on_connect(client, userdata, flags, rc):
-    # Subscribe to topic
-    client.subscribe('/home/data/#')
-
+# TODO: Own class or file for this function
+def thread_cpu_information_to_influx():
+    log.debug("New cycle")
+    # Get CPU information in JSON format
+    cpu_information = raspi_cpu_information.getCPUInformation()
+    # Write CPU information in database
+    influxDB_interface.dictToDatabase(cpu_information)
+    # Wait before next cycle
+    log.debug("Cycle done, go to sleep...")
+    time.sleep(30)
 
 def main(args):
     log.info("Start application")
-    while True:
-        client = mqtt.Client()
 
-        # Define callbacks for connect and message
-        client.on_connect = on_connect
-        client.on_message = on_message
+    ''' TASK 01: MQTT TO INFLUX INTERFACE '''
+    t1 = threading.Thread(target=mqttInfluxInterface.thread_mqtt_to_influx, args=())
+    t1.start()
 
-        # Connect to MQTT broker
-        #   TODO: Evaluate return of connect function
-        client.connect(BROKER_ADDRESS)
+    ''' TASK 02: CPU INFORMATION TO INFLUX '''
+    t2 = threading.Thread(target=thread_cpu_information_to_influx, args=())
+    t2.start()
 
-        print("Connected to MQTT Broker: " + BROKER_ADDRESS)
-        client.loop_forever()
-
+    t1.join()
+    t2.join()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
