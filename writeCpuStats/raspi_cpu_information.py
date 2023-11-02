@@ -3,6 +3,7 @@ import logging as log
 from gpiozero import CPUTemperature
 from influxdb import InfluxDBClient
 
+BYTES_TO_GB = 1 / 1024.0 / 1024.0 / 1024.0
 
 def getCPUInformation():
     # CPU temperature
@@ -14,7 +15,6 @@ def getCPUInformation():
     cpuInformation.update({"cpuLoad": cpuLoad})
 
     # Disk total
-    BYTES_TO_GB = 1 / 1024.0 / 1024.0 / 1024.0
     disk = psutil.disk_usage('/')
     diskTotal = round(disk.total * BYTES_TO_GB, 2)
     cpuInformation.update({"diskTotal": diskTotal})
