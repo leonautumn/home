@@ -20,12 +20,12 @@ class mqttInfluxInterface:
 
         # Split topic into several elements
         msg_arr = message.topic.split("/")
-        log.info(msg_arr)
+        log.debug(msg_arr)
 
         # Get topic element 3 and 4, put them together
         #   E. g.: "office/temperature" --> "office-temperature"
         key = msg_arr[3] + '-' + msg_arr[4]
-        log.info(key)
+        log.debug(key)
 
         # Safe topic and payload into dictionary
         influx_dict = {key: val}

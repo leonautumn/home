@@ -9,7 +9,7 @@ HUMIDITY_MAX = 100.0
 class InfluxDBInterface:
 
     def __init__(self, host, port, database):
-        log.debug("Starting application...")
+        log.info("Initialize instance of InfluxDBInterface")
         self.host = host
         self.port = port
         self.database = database
@@ -29,7 +29,7 @@ class InfluxDBInterface:
             key = keys[i]
             value = values[i]
             
-            log.info("Check data %s: %s", key, value)
+            log.debug("Check data %s: %s", key, value)
             checkData = self._checkData(key, value)
             
             if checkData:
@@ -62,7 +62,7 @@ class InfluxDBInterface:
         # Returns True if data check is ok, otherwise false
         # humidity must be between 0 [%] and 100 [%]
         # temperature must be between -30 [°] and 80 [°]
-        log.info("Check input data before writing to influxDB")
+        log.debug("Check input data before writing to influxDB")
         
         if("temperature" in key):
             log.debug("Check temperature")

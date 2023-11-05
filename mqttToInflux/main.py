@@ -16,7 +16,7 @@ currentPath = str(pathlib.Path(__file__).parent.resolve())
 logFormat = "%(asctime)s %(levelname)s  %(message)s"
 logFormatter = log.Formatter(logFormat)
 logFile = currentPath + "/log/" + "Application.log"
-log.basicConfig(level=log.DEBUG, format=logFormat)
+log.basicConfig(level=log.INFO, format=logFormat)
 rootLogger = log.getLogger()
 
 ''' Set rotating file handler with following settings:
@@ -63,7 +63,7 @@ TASK01_ENABLE = True
 TASK02_ENABLE = True
 
 def main(args):
-    log.info("Start application")
+    log.info("Starting main application...")
 
     ''' TASK 01: MQTT TO INFLUX INTERFACE '''
     if TASK01_ENABLE:
