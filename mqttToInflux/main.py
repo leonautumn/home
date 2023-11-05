@@ -49,28 +49,37 @@ mqttInfluxInterface = mqttInfluxInterface(BROKER_ADDRESS, influxDB_interface)
 
 # TODO: Own class or file for this function
 def thread_cpu_information_to_influx():
-    log.debug("New cycle")
-    # Get CPU information in JSON format
-    cpu_information = raspi_cpu_information.getCPUInformation()
-    # Write CPU information in database
-    influxDB_interface.dictToDatabase(cpu_information)
-    # Wait before next cycle
-    log.debug("Cycle done, go to sleep...")
-    time.sleep(30)
+    while True:
+        log.debug("New cycle")
+        # Get CPU information in JSON format
+        cpu_information = raspi_cpu_information.getCPUInformation()
+        # Write CPU information in database
+        influxDB_interface.dictToDatabase(cpu_information)
+        # Wait before next cycle
+        log.debug("Cycle done, go to sleep...")
+        time.sleep(30)
+
+TASK01_ENABLE = True
+TASK02_ENABLE = True
 
 def main(args):
     log.info("Start application")
 
     ''' TASK 01: MQTT TO INFLUX INTERFACE '''
-    t1 = threading.Thread(target=mqttInfluxInterface.thread_mqtt_to_influx, args=())
-    t1.start()
+    if TASK01_ENABLE:
+        t1 = threading.Thread(target=mqttInfluxInterface.thread_mqtt_to_influx, args=())
+        t1.start()
 
     ''' TASK 02: CPU INFORMATION TO INFLUX '''
-    t2 = threading.Thread(target=thread_cpu_information_to_influx, args=())
-    t2.start()
+    if TASK02_ENABLE:
+        t2 = threading.Thread(target=thread_cpu_information_to_influx, args=())
+        t2.start()
 
-    t1.join()
-    t2.join()
+    if TASK01_ENABLE:
+        t1.join()
+
+    if TASK02_ENABLE:
+        t2.join()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
