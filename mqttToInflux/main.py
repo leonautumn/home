@@ -5,9 +5,14 @@ import logging as log
 import time
 import logging.handlers as log_handler
 import raspi_cpu_information
-from mqttToInflux import mqttInfluxInterface
+from mqttToInflux import mqttInfluxInterface, InfluxDBDatasets
 from influxDB_interface import InfluxDBInterface
 import threading
+
+TEMPERATURE_MIN = -30.0
+TEMPERATURE_MAX = 80.0
+HUMIDITY_MIN = 0.0
+HUMIDITY_MAX = 100.0
 
 ''' Get current path of main.py as string '''
 currentPath = str(pathlib.Path(__file__).parent.resolve())
@@ -44,8 +49,17 @@ influxDB_interface = InfluxDBInterface(influxHost, influxPort, influxDatabase)
 ''' MQTT settings '''
 BROKER_ADDRESS = "localhost"
 
+'''' List of datasets '''
+influxDBDatasets = InfluxDBDatasets()
+influxDBDatasets.new_dataset(name="office-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
+influxDBDatasets.new_dataset(name="office-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
+influxDBDatasets.new_dataset(name="outside-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
+influxDBDatasets.new_dataset(name="outside-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
+influxDBDatasets.set_name_of_current_datasets()
+
 ''' MQTT InfluxDB interface instance '''
-mqttInfluxInterface = mqttInfluxInterface(BROKER_ADDRESS, influxDB_interface)
+mqttInfluxInterface = mqttInfluxInterface(BROKER_ADDRESS, influxDB_interface, influxDBDatasets)
+
 
 # TODO: Own class or file for this function
 def thread_cpu_information_to_influx():
@@ -59,8 +73,10 @@ def thread_cpu_information_to_influx():
         log.debug("Cycle done, go to sleep...")
         time.sleep(30)
 
+
 TASK01_ENABLE = True
 TASK02_ENABLE = True
+
 
 def main(args):
     log.info("Starting main application...")
@@ -80,6 +96,7 @@ def main(args):
 
     if TASK02_ENABLE:
         t2.join()
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
