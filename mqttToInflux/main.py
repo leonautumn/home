@@ -10,12 +10,14 @@ import threading
 from setup import setup_logger
 from enum import Enum
 
-TEMPERATURE_MIN = -30.0
-TEMPERATURE_MAX = 80.0
-HUMIDITY_MIN = 0.0
-HUMIDITY_MAX = 100.0
+TEMPERATURE_MIN = -30.0 # unit: °C
+TEMPERATURE_MAX = 80.0 # unit: °C
+HUMIDITY_MIN = 0.0 # unit: %
+HUMIDITY_MAX = 100.0 # unit: %
+POWER_MIN = 0 # unit: W
+POWER_MAX = 50000 # unit: W
 
-
+# Enumeration for evaluation type
 class EvaluationType(Enum):
     SINGLE_VALUE = "single"
     ELECTRICITY_SENSOR = "electricity_sensor"
@@ -40,7 +42,6 @@ influxDB_interface = InfluxDBInterface(influxHost, influxPort, influxDatabase)
 BROKER_ADDRESS = "localhost"
 
 '''' List of datasets '''
-# TODO: Define different "evaluation types"
 influxDBDatasets = InfluxDBDatasets()
 influxDBDatasets.new_dataset(name="office-temperature", min_value=TEMPERATURE_MIN, max_value=TEMPERATURE_MAX,
                              evaluation_type=EvaluationType.SINGLE_VALUE)
@@ -50,7 +51,7 @@ influxDBDatasets.new_dataset(name="outside-temperature", min_value=TEMPERATURE_M
                              evaluation_type=EvaluationType.SINGLE_VALUE)
 influxDBDatasets.new_dataset(name="outside-humidity", min_value=HUMIDITY_MIN, max_value=HUMIDITY_MAX,
                              evaluation_type=EvaluationType.SINGLE_VALUE)
-influxDBDatasets.new_dataset(name="electricmeter-SENSOR", min_value=0, max_value=999999,
+influxDBDatasets.new_dataset(name="electricmeter-SENSOR", min_value=POWER_MIN, max_value=POWER_MAX,
                              evaluation_type=EvaluationType.ELECTRICITY_SENSOR)
 influxDBDatasets.set_name_of_current_datasets()
 
@@ -59,7 +60,12 @@ mqttInfluxInterface = mqttInfluxInterface(BROKER_ADDRESS, influxDB_interface, in
 
 
 # TODO: Own class or file for this function
-def thread_cpu_information_to_influx():
+def thread_cpu_information_to_influx(time_sleep):
+    """
+    Get CPU information (CPU usage and processor temperature) and write information to database every <time_sleep>
+    seconds
+    :param time_sleep: sleeptime until new cycle
+    """
     while True:
         log.debug("New cycle")
         # Get CPU information in JSON format
@@ -68,7 +74,7 @@ def thread_cpu_information_to_influx():
         influxDB_interface.dictToDatabase(cpu_information)
         # Wait before next cycle
         log.debug("Cycle done, go to sleep...")
-        time.sleep(30)
+        time.sleep(time_sleep)
 
 
 TASK01_ENABLE = True
@@ -85,7 +91,7 @@ def main(args):
 
     ''' TASK 02: CPU INFORMATION TO INFLUX '''
     if TASK02_ENABLE:
-        t2 = threading.Thread(target=thread_cpu_information_to_influx, args=())
+        t2 = threading.Thread(target=thread_cpu_information_to_influx(30), args=())
         t2.start()
 
     if TASK01_ENABLE:

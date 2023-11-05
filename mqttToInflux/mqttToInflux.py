@@ -17,7 +17,6 @@ class mqttInfluxInterface:
         msg = str(message.payload.decode("utf-8"))
         log.info(msg)
 
-
         # Split topic into several elements
         msg_arr = message.topic.split("/")
         log.info(msg_arr)
@@ -28,21 +27,24 @@ class mqttInfluxInterface:
         log.debug(key)
 
         # Check if received data should be written to InfluxDB
+        # TODO: Distinguish between evaluation types by own function(s)
         if key in self.mqttDatasets.datasets_name:
             log.debug("Key " + key + " is part of datasets.")
 
             if not key == "electricmeter-SENSOR":
                 # Convert value [payload] into float data type
                 val = float(msg)
+                influx_dict = {key: val}
             else:
                 msg = json.loads(msg)
-                val = float((msg.get("MT681")).get("Power_cur"))
-
-            # Safe topic and payload into dictionary
-            influx_dict = {key: val}
-            log.info(influx_dict)
+                power_cur = float((msg.get("MT681")).get("Power_cur"))
+                power_p1 = float((msg.get("MT681")).get("Power_p1"))
+                power_p2 = float((msg.get("MT681")).get("Power_p2"))
+                power_p3 = float((msg.get("MT681")).get("Power_p3"))
+                influx_dict = { "Pges": power_cur, "Power_P1": power_p1, "Power_P2": power_p2, "Power_P3": power_p3 }
 
             # Write dict to database
+            log.info(influx_dict)
             self.influxDB_interface.dictToDatabase(influx_dict)
         else:
             log.debug("Key " + key + " is not part of datasets.")
