@@ -74,12 +74,13 @@ class InfluxDBDatasets:
         self.datasets = []
         self.datasets_name = []
 
-    def new_dataset(self, name, min, max):
+    def new_dataset(self, name, min_value, max_value, evaluation_type):
         # Create dict from the data
         dataset = {
             "name": name,
-            "min value": min,
-            "max value": max
+            "min value": min_value,
+            "max value": max_value,
+            "evaluation type": str(evaluation_type)
         }
         
         # Convert dict to json object

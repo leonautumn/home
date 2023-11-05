@@ -3,39 +3,29 @@
 import sys, pathlib
 import logging as log
 import time
-import logging.handlers as log_handler
 import raspi_cpu_information
 from mqttToInflux import mqttInfluxInterface, InfluxDBDatasets
 from influxDB_interface import InfluxDBInterface
 import threading
+from setup import setup_logger
+from enum import Enum
 
 TEMPERATURE_MIN = -30.0
 TEMPERATURE_MAX = 80.0
 HUMIDITY_MIN = 0.0
 HUMIDITY_MAX = 100.0
 
-''' Get current path of main.py as string '''
+
+class EvaluationType(Enum):
+    SINGLE_VALUE = "single"
+    ELECTRICITY_SENSOR = "electricity_sensor"
+
+
+# Get current path of main.py as string
 currentPath = str(pathlib.Path(__file__).parent.resolve())
 
-''' Log settings '''
-logFormat = "%(asctime)s %(levelname)s  %(message)s"
-logFormatter = log.Formatter(logFormat)
-logFile = currentPath + "/log/" + "Application.log"
-log.basicConfig(level=log.INFO, format=logFormat)
-rootLogger = log.getLogger()
-
-''' Set rotating file handler with following settings:
-        - Max. 10 MB per file
-        - Max. 10 files in archive
-'''
-fileHandler = log_handler.RotatingFileHandler(filename=logFile, mode='a', maxBytes=10 * 1024 * 1024, backupCount=10,
-                                              encoding=None, delay=False, errors=None)
-
-fileHandler.setFormatter(logFormatter)
-rootLogger.addHandler(fileHandler)
-
-consoleHandler = log.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
+# Setup logging information
+setup_logger(current_path=currentPath, log_level=log.INFO, log_file_size_mb=10, log_file_numbers=10)
 
 # TODO: Configuration of INFLUX and MQTT in an XML file
 ''' InfluxDB settings '''
@@ -52,11 +42,16 @@ BROKER_ADDRESS = "localhost"
 '''' List of datasets '''
 # TODO: Define different "evaluation types"
 influxDBDatasets = InfluxDBDatasets()
-influxDBDatasets.new_dataset(name="office-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
-influxDBDatasets.new_dataset(name="office-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
-influxDBDatasets.new_dataset(name="outside-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
-influxDBDatasets.new_dataset(name="outside-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
-influxDBDatasets.new_dataset(name="electricmeter-SENSOR", min=0, max=999999)
+influxDBDatasets.new_dataset(name="office-temperature", min_value=TEMPERATURE_MIN, max_value=TEMPERATURE_MAX,
+                             evaluation_type=EvaluationType.SINGLE_VALUE)
+influxDBDatasets.new_dataset(name="office-humidity", min_value=HUMIDITY_MIN, max_value=HUMIDITY_MAX,
+                             evaluation_type=EvaluationType.SINGLE_VALUE)
+influxDBDatasets.new_dataset(name="outside-temperature", min_value=TEMPERATURE_MIN, max_value=TEMPERATURE_MAX,
+                             evaluation_type=EvaluationType.SINGLE_VALUE)
+influxDBDatasets.new_dataset(name="outside-humidity", min_value=HUMIDITY_MIN, max_value=HUMIDITY_MAX,
+                             evaluation_type=EvaluationType.SINGLE_VALUE)
+influxDBDatasets.new_dataset(name="electricmeter-SENSOR", min_value=0, max_value=999999,
+                             evaluation_type=EvaluationType.ELECTRICITY_SENSOR)
 influxDBDatasets.set_name_of_current_datasets()
 
 ''' MQTT InfluxDB interface instance '''
