@@ -11,4 +11,4 @@ All the data can be visualized via Grafana.
 ![Screenshot_1](https://user-images.githubusercontent.com/64750042/280531911-fe6e3896-bf20-4ba2-893f-f5cd7d8f77eb.png)
 
 <b>Example: Visualizing power usage</b>
-![Screenshot_2](https://user-images.githubusercontent.com/64750042/280531923-a5fd93df-c5dd-49c6-ad1f-03fe3b4f8495.png)
+![Screenshot_2](https://github.com/leonautumn/home/assets/64750042/b7c6d135-18e5-4da9-9e16-e185b417f62f)
