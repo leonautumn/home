@@ -16,8 +16,7 @@ class mqttInfluxInterface:
         # Decode message in utf-8 format
         msg = str(message.payload.decode("utf-8"))
         log.info(msg)
-        # Convert value [payload] into float data type
-        val = float(msg)
+
 
         # Split topic into several elements
         msg_arr = message.topic.split("/")
@@ -31,6 +30,13 @@ class mqttInfluxInterface:
         # Check if received data should be written to InfluxDB
         if key in self.mqttDatasets.datasets_name:
             log.debug("Key " + key + " is part of datasets.")
+
+            if not key == "electricmeter-SENSOR":
+                # Convert value [payload] into float data type
+                val = float(msg)
+            else:
+                msg = json.loads(msg)
+                val = float((msg.get("MT681")).get("Power_cur"))
 
             # Safe topic and payload into dictionary
             influx_dict = {key: val}

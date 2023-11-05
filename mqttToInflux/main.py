@@ -50,11 +50,13 @@ influxDB_interface = InfluxDBInterface(influxHost, influxPort, influxDatabase)
 BROKER_ADDRESS = "localhost"
 
 '''' List of datasets '''
+# TODO: Define different "evaluation types"
 influxDBDatasets = InfluxDBDatasets()
 influxDBDatasets.new_dataset(name="office-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
 influxDBDatasets.new_dataset(name="office-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
 influxDBDatasets.new_dataset(name="outside-temperature", min=TEMPERATURE_MIN, max=TEMPERATURE_MAX)
 influxDBDatasets.new_dataset(name="outside-humidity", min=HUMIDITY_MIN, max=HUMIDITY_MAX)
+influxDBDatasets.new_dataset(name="electricmeter-SENSOR", min=0, max=999999)
 influxDBDatasets.set_name_of_current_datasets()
 
 ''' MQTT InfluxDB interface instance '''
