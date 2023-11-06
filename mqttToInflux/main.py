@@ -15,7 +15,7 @@ TEMPERATURE_MAX = 80.0 # unit: °C
 HUMIDITY_MIN = 0.0 # unit: %
 HUMIDITY_MAX = 100.0 # unit: %
 POWER_MIN = 0 # unit: W
-POWER_MAX = 50000 # unit: W
+POWER_MAX = 15000 # unit: W
 
 # Enumeration for evaluation type
 class EvaluationType(Enum):
