@@ -40,6 +40,11 @@ class mqttInfluxInterface:
             else:
                 msg = json.loads(msg)
 
+                # TODO: Own dataset for overall consumption
+                key = "Eges"
+                val = float((msg.get("MT681")).get("Total_in"))
+                if val > 0 and val < 50000: influx_dict.update({key: val})
+
                 key = "Pges"
                 val = float((msg.get("MT681")).get("Power_cur"))
                 if self._checkData(val, dataset): influx_dict.update({key: val})
