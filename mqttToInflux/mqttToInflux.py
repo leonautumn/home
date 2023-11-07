@@ -4,7 +4,6 @@ import logging as log
 import paho.mqtt.client as mqtt
 
 
-
 class mqttInfluxInterface:
 
     def __init__(self, broker_address, influxDBInterface, influxDBDatasets):
@@ -30,25 +29,39 @@ class mqttInfluxInterface:
         # TODO: Distinguish between evaluation types by own function(s)
         if key in self.mqttDatasets.datasets_name:
             log.debug("Key " + key + " is part of datasets.")
+            dataset = self.mqttDatasets.get_dataset_by_name(key)
+            log.info("Get dataset: " + dataset)
+            influx_dict = {} # Empty dict
 
             if not key == "electricmeter-SENSOR":
                 # Convert value [payload] into float data type
                 val = float(msg)
-                influx_dict = {key: val}
+                if self._checkData(val, dataset): influx_dict.update({key: val})
             else:
                 msg = json.loads(msg)
-                power_cur = float((msg.get("MT681")).get("Power_cur"))
-                power_p1 = float((msg.get("MT681")).get("Power_p1"))
-                power_p2 = float((msg.get("MT681")).get("Power_p2"))
-                power_p3 = float((msg.get("MT681")).get("Power_p3"))
-                influx_dict = { "Pges": power_cur, "Power_P1": power_p1, "Power_P2": power_p2, "Power_P3": power_p3 }
+
+                key = "Pges"
+                val = float((msg.get("MT681")).get("Power_cur"))
+                if self._checkData(val, dataset): influx_dict.update({key: val})
+
+                key = "Power_P1"
+                val = float((msg.get("MT681")).get("Power_p1"))
+                if self._checkData(val, dataset): influx_dict.update({key: val})
+
+                key = "Power_P2"
+                val = float((msg.get("MT681")).get("Power_p2"))
+                if self._checkData(val, dataset): influx_dict.update({key: val})
+
+                key = "Power_P3"
+                val = float((msg.get("MT681")).get("Power_p3"))
+                if self._checkData(val, dataset): influx_dict.update({key: val})
 
             # Write dict to database
             log.info(influx_dict)
-            self.influxDB_interface.dictToDatabase(influx_dict)
+            if (len(influx_dict) > 0):
+                self.influxDB_interface.dictToDatabase(influx_dict)
         else:
             log.debug("Key " + key + " is not part of datasets.")
-
 
     def on_connect(self, client, userdata, flags, rc):
         # Subscribe to topic
@@ -69,6 +82,27 @@ class mqttInfluxInterface:
             print("Connected to MQTT Broker: " + self.broker_address)
             client.loop_forever()
 
+    def _checkData(self, value, dataset):
+        # Returns True if data check is ok, otherwise False
+
+        log.info("Check input data before writing to influxDB")
+        min_val = json.loads(dataset).get("min value")
+        log.debug("Min val: " + str(min_val))
+        max_val = json.loads(dataset).get("max value")
+        log.debug("Max val: " + str(max_val))
+
+        if value < min_val:
+            log.info("Value " + str(value) + " is smaller than min value " + str(min_val))
+            return False
+
+        if value > max_val:
+            log.info("Value " + str(value) + " is greater than min value " + str(max_val))
+            return False
+
+        log.info("Check data OK.")
+        return True
+
+
 class InfluxDBDatasets:
 
     def __init__(self):
@@ -84,11 +118,11 @@ class InfluxDBDatasets:
             "max value": max_value,
             "evaluation type": str(evaluation_type)
         }
-        
+
         # Convert dict to json object
         dataset_json = json.dumps(dataset)
         log.info("Created dataset: " + dataset_json)
-        
+
         # Append object to list of objects
         self.datasets.append(dataset_json)
 
@@ -111,3 +145,12 @@ class InfluxDBDatasets:
             self.datasets_name.append(dataset_name)
 
         log.info(self.datasets_name)
+
+    def get_dataset_by_name(self, name):
+        # Get dataset by name
+        log.debug("Get dataset " + name)
+        for dataset in self.datasets:
+            log.debug(dataset)
+            log.debug(json.loads(dataset).get("name"))
+            if json.loads(dataset).get("name") == name:
+                return dataset

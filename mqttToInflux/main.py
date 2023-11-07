@@ -27,7 +27,7 @@ class EvaluationType(Enum):
 currentPath = str(pathlib.Path(__file__).parent.resolve())
 
 # Setup logging information
-setup_logger(current_path=currentPath, log_level=log.INFO, log_file_size_mb=10, log_file_numbers=10)
+setup_logger(current_path=currentPath, log_level=log.DEBUG, log_file_size_mb=10, log_file_numbers=10)
 
 # TODO: Configuration of INFLUX and MQTT in an XML file
 ''' InfluxDB settings '''
