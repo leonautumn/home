@@ -43,6 +43,7 @@ class mqttInfluxInterface:
                 # TODO: Own dataset for overall consumption
                 key = "Eges"
                 val = float((msg.get("MT681")).get("Total_in"))
+                # Minimum: 10000 kwh
                 if val > 10000 and val < 50000: influx_dict.update({key: val})
 
                 key = "Pges"
